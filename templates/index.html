@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Waiting Time Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --shadow: 0 10px 20px rgba(0,0,0,0.1);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .illustration {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .illustration::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            top: -50px;
+            right: -50px;
+        }
+
+        .illustration::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            bottom: -100px;
+            left: -100px;
+        }
+
+        .illustration img {
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 30px;
+        }
+
+        .illustration h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .illustration p {
+            text-align: center;
+            opacity: 0.9;
+            z-index: 1;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-container h1 {
+            color: var(--primary);
+            margin-bottom: 30px;
+            font-size: 32px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .form-container h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn:hover {
+            background: #5649c0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn i {
+            margin-left: 8px;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: var(--radius);
+            background: rgba(108, 92, 231, 0.1);
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .result-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .result-unit {
+            font-size: 16px;
+            color: #666;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+            border: 4px solid rgba(108, 92, 231, 0.2);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: var(--danger);
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .illustration {
+                padding: 30px 20px;
+            }
+
+            .form-container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="illustration">
+            <img src="https://cdn-icons-png.flaticon.com/512/3176/3176272.png" alt="Waiting Time">
+            <h2>Restaurant Waiting Time Predictor</h2>
+            <p>Get accurate estimates for order preparation time based on current kitchen conditions</p>
+        </div>
+        <div class="form-container">
+            <h1>Predict Waiting Time</h1>
+            <form id="predictionForm">
+                <div class="form-group">
+                    <label for="number_of_items">Number of Items in Order</label>
+                    <input type="number" id="number_of_items" class="form-control" min="1" max="20" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="kitchen_current_load">Current Kitchen Load (1-100)</label>
+                    <input type="number" id="kitchen_current_load" class="form-control" min="1" max="100" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="chefs_available">Number of Chefs Available</label>
+                    <input type="number" id="chefs_available" class="form-control" min="1" max="20" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="load_per_chef">Load per Chef</label>
+                    <input type="number" id="load_per_chef" class="form-control" step="0.1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="item_x_load">Item Complexity Score (1-10)</label>
+                    <input type="number" id="item_x_load" class="form-control" min="1" max="10" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Order Time</label>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <input type="checkbox" id="order_time_Lunch" class="form-control" style="width: auto;">
+                            <label for="order_time_Lunch">Lunch Time</label>
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="checkbox" id="order_time_Morning" class="form-control" style="width: auto;">
+                            <label for="order_time_Morning">Morning</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priority_VIP">VIP Priority</label>
+                    <select id="priority_VIP" class="form-control" required>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Order Size</label>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <input type="checkbox" id="order_size_medium" class="form-control" style="width: auto;">
+                            <label for="order_size_medium">Medium</label>
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="checkbox" id="order_size_small" class="form-control" style="width: auto;">
+                            <label for="order_size_small">Small</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">Predict Waiting Time <i class="fas fa-clock"></i></button>
+                
+                <div class="error-message" id="errorMessage"></div>
+                
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
+                    <p>Calculating prediction...</p>
+                </div>
+                
+                <div class="result-container" id="resultContainer">
+                    <div class="result-title">Estimated Waiting Time</div>
+                    <div>
+                        <span class="result-value" id="resultValue">0</span>
+                        <span class="result-unit">minutes</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading indicator
+            document.getElementById('loadingIndicator').classList.add('show');
+            document.getElementById('resultContainer').classList.remove('show');
+            document.getElementById('errorMessage').classList.remove('show');
+            
+            try {
+                // Collect form data
+                const formData = {
+                    number_of_items: parseInt(document.getElementById('number_of_items').value),
+                    kitchen_current_load: parseInt(document.getElementById('kitchen_current_load').value),
+                    chefs_available: parseInt(document.getElementById('chefs_available').value),
+                    load_per_chef: parseFloat(document.getElementById('load_per_chef').value),
+                    item_x_load: parseInt(document.getElementById('item_x_load').value),
+                    order_time_Lunch: document.getElementById('order_time_Lunch').checked ? 1 : 0,
+                    order_time_Morning: document.getElementById('order_time_Morning').checked ? 1 : 0,
+                    priority_VIP: parseInt(document.getElementById('priority_VIP').value),
+                    order_size_medium: document.getElementById('order_size_medium').checked ? 1 : 0,
+                    order_size_small: document.getElementById('order_size_small').checked ? 1 : 0
+                };
+                
+                // Make API call to your Flask backend
+                const response = await fetch('http://localhost:5000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to get prediction');
+                }
+                
+                const data = await response.json();
+                
+                // Display result
+                document.getElementById('resultValue').textContent = data.predicted_waiting_time.toFixed(1);
+                document.getElementById('resultContainer').classList.add('show');
+                
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('errorMessage').classList.add('show');
+            } finally {
+                document.getElementById('loadingIndicator').classList.remove('show');
+            }
+        });
+
+        // Calculate load per chef automatically when relevant fields change
+        document.getElementById('kitchen_current_load').addEventListener('input', calculateLoadPerChef);
+        document.getElementById('chefs_available').addEventListener('input', calculateLoadPerChef);
+        
+        function calculateLoadPerChef() {
+            const kitchenLoad = parseFloat(document.getElementById('kitchen_current_load').value) || 0;
+            const chefsAvailable = parseFloat(document.getElementById('chefs_available').value) || 1;
+            document.getElementById('load_per_chef').value = (kitchenLoad / chefsAvailable).toFixed(1);
+        }
+    </script>
+</body>
+</html>
